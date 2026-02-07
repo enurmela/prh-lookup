@@ -27,6 +27,16 @@ bun run dev
   - full format: `0112038-9`
   - 8 digits: `01120389` (auto-normalized)
 - Short numeric input (example: `123`) is intentionally blocked with guidance.
+- Search uses a short cache for speed:
+  - repeated queries within ~120 seconds return instantly from cache
+  - stale cached results can appear first, then refresh in background
+
+## Split View UX
+
+- During active search, the command uses split view:
+  - left: compact result list
+  - right: minimal quick summary with dates first (last modified, registration/end date, status, essentials)
+- Full details are still available via `View Details`.
 
 ## Favorites
 
@@ -48,6 +58,7 @@ bun run dev
 - First page of results only (`page=1`)
 - No financial/map tabs
 - No guaranteed direct per-company YTJ deep-link
+- No phone/email fields in PRH YTJ v3 `/companies`
 
 ## Troubleshooting
 

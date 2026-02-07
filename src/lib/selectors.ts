@@ -117,6 +117,7 @@ export function toUiCompany(company: PrhCompany, languageOrder: PrhLanguageCode[
     : undefined;
 
   const website = normalizeWebsiteUrl(company.website?.url);
+  const activeRegisterCount = getActiveRegisteredEntries(company.registeredEntries ?? []).length;
 
   return {
     businessId: company.businessId.value,
@@ -135,6 +136,7 @@ export function toUiCompany(company: PrhCompany, languageOrder: PrhLanguageCode[
     primaryAddress,
     addresses: company.addresses ?? [],
     registeredEntries: company.registeredEntries ?? [],
+    activeRegisterCount,
     registrationDate: company.registrationDate ?? company.businessId.registrationDate ?? undefined,
     endDate: company.endDate ?? undefined,
     lastModified: company.lastModified,
@@ -154,4 +156,16 @@ export function getPrimaryCity(company: UiCompany): string | undefined {
 
 export function getPrimaryAddressText(company: UiCompany): string | undefined {
   return formatAddress(company.primaryAddress ?? selectPrimaryAddress(company.addresses), company.languageOrder);
+}
+
+export function hasCriticalDetailData(company?: UiCompany): boolean {
+  if (!company) {
+    return false;
+  }
+
+  const hasTradeRegisterStatus = Boolean(company.tradeRegisterStatusCode);
+  const hasAddressesPayload = Array.isArray(company.raw.addresses);
+  const hasRegisteredEntriesPayload = Array.isArray(company.raw.registeredEntries);
+
+  return hasTradeRegisterStatus && hasAddressesPayload && hasRegisteredEntriesPayload;
 }

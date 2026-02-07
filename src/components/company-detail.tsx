@@ -4,7 +4,13 @@ import { useEffect, useMemo, useState } from "react";
 import { getRawCompanyApiUrl, searchCompanies } from "../api/prh";
 import { AUTHORITY_LABELS, REGISTER_LABELS, YTJ_SEARCH_URL } from "../constants";
 import { formatAddress, formatDate } from "../lib/format";
-import { getActiveRegisteredEntries, getEntryLabel, getPrimaryAddressText, toUiCompany } from "../lib/selectors";
+import {
+  getActiveRegisteredEntries,
+  getEntryLabel,
+  getPrimaryAddressText,
+  hasCriticalDetailData,
+  toUiCompany,
+} from "../lib/selectors";
 import type { PrhLanguageCode } from "../types/prh";
 import type { UiCompany } from "../types/ui";
 
@@ -101,8 +107,6 @@ function buildMarkdown(company: UiCompany): string {
 ## Classification
 - Company form: ${companyFormText}
 - Main business line: ${mainBusinessLineText}
-
-## Contact
 - Website: ${company.website ? `[${company.website}](${company.website})` : "Not available"}
 
 ## Addresses
@@ -128,10 +132,19 @@ export default function CompanyDetail({
   onRemoveFavorite,
 }: CompanyDetailProps) {
   const [company, setCompany] = useState<UiCompany | undefined>(initialCompany);
-  const [isLoading, setIsLoading] = useState(!initialCompany);
+  const shouldFetchDetails = !hasCriticalDetailData(initialCompany);
+  const [isLoading, setIsLoading] = useState(shouldFetchDetails);
 
   useEffect(() => {
     const controller = new AbortController();
+
+    if (!shouldFetchDetails) {
+      setCompany(initialCompany);
+      setIsLoading(false);
+      return () => {
+        controller.abort();
+      };
+    }
 
     const load = async () => {
       setIsLoading(true);
@@ -163,7 +176,7 @@ export default function CompanyDetail({
     return () => {
       controller.abort();
     };
-  }, [businessId, languageOrder]);
+  }, [businessId, initialCompany, languageOrder, shouldFetchDetails]);
 
   const displayedCompany = company ?? initialCompany;
 
@@ -199,6 +212,15 @@ export default function CompanyDetail({
             {displayedCompany.website ? (
               <Detail.Metadata.Link title="Website" text={displayedCompany.website} target={displayedCompany.website} />
             ) : null}
+            <Detail.Metadata.Label
+              title="Registration Date"
+              text={formatDate(displayedCompany.registrationDate) ?? "Not available"}
+            />
+            <Detail.Metadata.Label title="End Date" text={formatDate(displayedCompany.endDate) ?? "Not available"} />
+            <Detail.Metadata.Label
+              title="Last Modified"
+              text={formatDate(displayedCompany.lastModified) ?? displayedCompany.lastModified ?? "Not available"}
+            />
             {primaryAddress ? <Detail.Metadata.Label title="Primary Address" text={primaryAddress} /> : null}
           </Detail.Metadata>
         ) : undefined

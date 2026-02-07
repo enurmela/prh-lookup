@@ -17,6 +17,7 @@ export interface UiCompany {
   primaryAddress?: PrhAddress;
   addresses: PrhAddress[];
   registeredEntries: PrhRegisteredEntry[];
+  activeRegisterCount?: number;
   registrationDate?: string;
   endDate?: string;
   lastModified?: string;

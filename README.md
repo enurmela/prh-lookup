@@ -82,6 +82,11 @@ References:
 - Uses only page 1 of `/companies` results
 - No map/financial tabs
 - No stable YTJ deep-link per business ID assumed; uses YTJ search page + raw PRH JSON link
+- No phone/email fields in PRH YTJ v3 `/companies`
+
+## Roadmap
+
+- Add phone/email only if PRH or another explicitly approved source provides reliable contact fields
 
 ## Privacy
 

@@ -17,6 +17,7 @@ This guide covers how to develop and maintain this Raycast extension.
 - `src/hooks/use-prh-search.ts`: input classification + search orchestration
 - `src/hooks/use-favorites.ts`: local favorites persistence
 - `src/lib/language.ts`: language preference + fallback order
+- `src/lib/detail-view.tsx`: split-view right-panel render helpers
 - `src/lib/selectors.ts`: PRH -> UI selection logic
 - `src/lib/format.ts`: formatting helpers
 - `src/types/prh.ts`: raw API types
@@ -69,6 +70,36 @@ Current enforced behavior:
   - other numeric values -> show hint, skip API call
 - Pagination is fixed at `page=1` in MVP.
 
+## Search Performance Strategy
+
+`use-prh-search` implements stale-while-revalidate:
+
+- In-memory cache key format:
+  - `b:{businessId}` for Business ID queries
+  - `n:{lowercaseName}` for name queries
+- Cache policy:
+  - TTL: `120000ms` (120s)
+  - Max entries: `100`, oldest entry evicted first
+- Behavior:
+  - fresh cache => immediate render, skip network
+  - stale cache => immediate render + background refresh
+  - no cache => normal network fetch
+- Name queries are debounced (`180ms`)
+- Business ID queries remain immediate
+- Request race protection:
+  - `AbortController` cancellation
+  - monotonic request token guard before state writes
+
+## Split-View + Detail Fetch Strategy
+
+- Search results view uses Raycast `List` split detail mode.
+- Left pane remains compact for scanning.
+- Right pane stays minimal and prioritizes dates (last modified, registration, end date), then key status fields.
+- `CompanyDetail` conditional refetch:
+  - skip refetch when `initialCompany` already has critical data
+  - refetch when opened from sparse snapshots (e.g. favorites)
+  - preserve fallback UI and toast behavior on errors
+
 ## Data and Security Notes
 
 - No external analytics.
@@ -93,3 +124,4 @@ Note: Raycast docs often assume npm lockfiles for Store CI. If needed for submis
 - Add `bun run check` script (`lint && build`)
 - Add optional language override preference
 - Add pagination controls beyond page 1
+- Add phone/email only if PRH (or another explicitly approved source) provides reliable contact fields

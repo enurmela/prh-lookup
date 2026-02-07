@@ -1,10 +1,11 @@
 import { Action, ActionPanel, Icon, List } from "@raycast/api";
 import { getRawCompanyApiUrl } from "./api/prh";
 import CompanyDetail from "./components/company-detail";
-import { YTJ_SEARCH_URL } from "./constants";
-import { getPrimaryAddressText, getPrimaryCity } from "./lib/selectors";
 import { useFavorites } from "./hooks/use-favorites";
 import { usePrhSearch } from "./hooks/use-prh-search";
+import { YTJ_SEARCH_URL } from "./constants";
+import { buildSplitDetailMarkdown, buildSplitDetailMetadata } from "./lib/detail-view";
+import { getPrimaryAddressText, getPrimaryCity } from "./lib/selectors";
 import type { FavoriteCompany, UiCompany } from "./types/ui";
 
 function toCompanyFromFavorite(favorite: FavoriteCompany, languageOrder: ("1" | "2" | "3")[]): UiCompany {
@@ -82,6 +83,22 @@ function CompanyActions({
   );
 }
 
+function getResultSectionTitle(isCachedResult: boolean, isRefreshing: boolean): string {
+  if (isCachedResult && isRefreshing) {
+    return "Results (Cached - Refreshing...)";
+  }
+
+  if (isCachedResult) {
+    return "Results (Cached)";
+  }
+
+  if (isRefreshing) {
+    return "Results (Refreshing...)";
+  }
+
+  return "Results";
+}
+
 export default function Command() {
   const {
     searchText,
@@ -89,6 +106,8 @@ export default function Command() {
     classification,
     companies,
     isLoading,
+    isRefreshing,
+    isCachedResult,
     totalResults,
     hasMoreResults,
     languageOrder,
@@ -97,10 +116,12 @@ export default function Command() {
   const { favorites, isLoading: isLoadingFavorites, isFavorite, addFavorite, removeFavorite } = useFavorites();
 
   const trimmed = searchText.trim();
+  const isSearchMode = trimmed.length > 0 && (classification.kind === "businessId" || classification.kind === "name");
 
   return (
     <List
       isLoading={isLoading || isLoadingFavorites}
+      isShowingDetail={isSearchMode}
       onSearchTextChange={setSearchText}
       throttle
       searchBarPlaceholder="Search by company name or Business ID (e.g. nokia, 0112038-9)"
@@ -157,7 +178,7 @@ export default function Command() {
         <List.Section title="Get Started">
           <List.Item
             icon={Icon.MagnifyingGlass}
-            title="Search Finnish companies"
+            title="Search Finnish Companies"
             subtitle="Type company name or Business ID to start"
             accessories={[{ text: "PRH YTJ" }]}
           />
@@ -175,8 +196,8 @@ export default function Command() {
         </List.Section>
       ) : null}
 
-      {trimmed.length > 0 && classification.kind !== "invalid-numeric" && classification.kind !== "too-short-text" ? (
-        <List.Section title="Results">
+      {isSearchMode ? (
+        <List.Section title={getResultSectionTitle(isCachedResult, isRefreshing)}>
           {companies.map((company) => {
             const primaryCity = getPrimaryCity(company);
             const favorite = isFavorite(company.businessId);
@@ -187,10 +208,13 @@ export default function Command() {
                 icon={favorite ? Icon.Star : Icon.Building}
                 title={company.displayName}
                 subtitle={company.businessId}
-                accessories={[
-                  company.companyFormLabel ? { text: company.companyFormLabel } : undefined,
-                  primaryCity ? { text: primaryCity } : undefined,
-                ].filter((entry): entry is { text: string } => Boolean(entry))}
+                accessories={primaryCity ? [{ text: primaryCity }] : undefined}
+                detail={
+                  <List.Item.Detail
+                    markdown={buildSplitDetailMarkdown(company)}
+                    metadata={buildSplitDetailMetadata(company)}
+                  />
+                }
                 actions={
                   <CompanyActions
                     company={company}
@@ -207,7 +231,7 @@ export default function Command() {
           {!isLoading && companies.length === 0 ? (
             <List.Item
               icon={Icon.XmarkCircle}
-              title="No companies found"
+              title="No Companies Found"
               subtitle={`No results for "${trimmed}"`}
               accessories={[{ text: "Try another query" }]}
             />
@@ -215,7 +239,7 @@ export default function Command() {
         </List.Section>
       ) : null}
 
-      {trimmed.length > 0 && hasMoreResults ? (
+      {isSearchMode && hasMoreResults ? (
         <List.Section title="Notice">
           <List.Item
             icon={Icon.Info}
