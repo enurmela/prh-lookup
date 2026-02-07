@@ -1,0 +1,43 @@
+import type { PrhAddress, PrhCompany, PrhLanguageCode, PrhRegisteredEntry } from "./prh";
+
+export interface UiCompany {
+  businessId: string;
+  euId?: string;
+  displayName: string;
+  primaryNameType?: string;
+  companyFormCode?: string;
+  companyFormLabel?: string;
+  tradeRegisterStatusCode?: string;
+  tradeRegisterStatusLabel?: string;
+  businessIdStatusCode?: string;
+  businessIdStatusLabel?: string;
+  mainBusinessLineCode?: string;
+  mainBusinessLineLabel?: string;
+  website?: string;
+  primaryAddress?: PrhAddress;
+  addresses: PrhAddress[];
+  registeredEntries: PrhRegisteredEntry[];
+  registrationDate?: string;
+  endDate?: string;
+  lastModified?: string;
+  languageOrder: PrhLanguageCode[];
+  raw: PrhCompany;
+}
+
+export interface FavoriteCompany {
+  businessId: string;
+  displayName: string;
+  companyForm?: string;
+  city?: string;
+  website?: string;
+  updatedAt: string;
+}
+
+export type QueryClassificationKind = "empty" | "businessId" | "name" | "invalid-numeric" | "too-short-text";
+
+export interface QueryClassification {
+  kind: QueryClassificationKind;
+  value?: string;
+  normalizedBusinessId?: string;
+  hint?: string;
+}

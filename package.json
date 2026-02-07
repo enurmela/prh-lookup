@@ -1,0 +1,42 @@
+{
+  "$schema": "https://www.raycast.com/schemas/extension.json",
+  "name": "prh-lookup",
+  "title": "PRH Lookup",
+  "description": "Search Finnish companies by name or Business ID (PRH YTJ)",
+  "icon": "icon.png",
+  "author": "elias",
+  "access": "private",
+  "categories": [
+    "Productivity",
+    "Web"
+  ],
+  "license": "MIT",
+  "commands": [
+    {
+      "name": "prh-search",
+      "title": "PRH Search",
+      "description": "Search Finnish companies by name or Business ID (PRH YTJ)",
+      "mode": "view"
+    }
+  ],
+  "dependencies": {
+    "@raycast/api": "^1.90.0",
+    "@raycast/utils": "^1.17.0"
+  },
+  "devDependencies": {
+    "@raycast/eslint-config": "^1.0.11",
+    "@types/node": "20.8.10",
+    "@types/react": "18.3.3",
+    "eslint": "^8.57.0",
+    "prettier": "^3.3.3",
+    "typescript": "^5.4.5"
+  },
+  "packageManager": "bun@1.2.7",
+  "scripts": {
+    "build": "ray build",
+    "dev": "ray develop",
+    "lint": "ray lint",
+    "fix-lint": "ray lint --fix",
+    "publish": "bunx @raycast/api@latest publish"
+  }
+}
