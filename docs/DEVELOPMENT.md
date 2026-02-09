@@ -68,24 +68,32 @@ Current enforced behavior:
   - `^\d{8}$` -> normalize to `NNNNNNN-N`, then business ID
   - text length >= 2 -> name search
   - other numeric values -> show hint, skip API call
-- Pagination is fixed at `page=1` in MVP.
+- Pagination is supported via incremental page loading.
 
 ## Search Performance Strategy
 
 `use-prh-search` implements stale-while-revalidate:
 
-- In-memory cache key format:
-  - `b:{businessId}` for Business ID queries
-  - `n:{lowercaseName}` for name queries
+- Cache key format:
+  - `b:{businessId}:p:{page}` for Business ID queries
+  - `n:{lowercaseName}:p:{page}` for name queries
 - Cache policy:
   - TTL: `120000ms` (120s)
-  - Max entries: `100`, oldest entry evicted first
+  - Retention: `86400000ms` (24h)
+  - Max entries: `100`, oldest entries evicted first
 - Behavior:
   - fresh cache => immediate render, skip network
   - stale cache => immediate render + background refresh
   - no cache => normal network fetch
+- Cache persistence:
+  - cache is mirrored to local storage key `prh-search-cache-v1`
 - Name queries are debounced (`180ms`)
 - Business ID queries remain immediate
+- Pagination:
+  - page 1 is searched first
+  - additional pages are loaded on demand
+- Request dedupe:
+  - identical in-flight requests share one underlying fetch
 - Request race protection:
   - `AbortController` cancellation
   - monotonic request token guard before state writes
@@ -123,5 +131,4 @@ Note: Raycast docs often assume npm lockfiles for Store CI. If needed for submis
 - Add `CHANGELOG.md`
 - Add `bun run check` script (`lint && build`)
 - Add optional language override preference
-- Add pagination controls beyond page 1
 - Add phone/email only if PRH (or another explicitly approved source) provides reliable contact fields

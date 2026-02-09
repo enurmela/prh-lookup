@@ -4,14 +4,23 @@ import CompanyDetail from "./components/company-detail";
 import { useFavorites } from "./hooks/use-favorites";
 import { usePrhSearch } from "./hooks/use-prh-search";
 import { YTJ_SEARCH_URL } from "./constants";
-import { buildSplitDetailMarkdown, buildSplitDetailMetadata } from "./lib/detail-view";
+import { buildSplitDetailMetadata } from "./lib/detail-view";
+import { toEuVatNumber } from "./lib/format";
+import { buildMapSearchLinks } from "./lib/maps";
 import { getPrimaryAddressText, getPrimaryCity } from "./lib/selectors";
 import type { FavoriteCompany, UiCompany } from "./types/ui";
 
 function toCompanyFromFavorite(favorite: FavoriteCompany, languageOrder: ("1" | "2" | "3")[]): UiCompany {
   return {
     businessId: favorite.businessId,
+    euVatNumber: toEuVatNumber(favorite.businessId),
     displayName: favorite.displayName,
+    currentLegalName: favorite.displayName,
+    previousLegalNames: [],
+    alternateNames: [],
+    previousLegalNameCount: 0,
+    alternateNameCount: 0,
+    searchKeywords: [favorite.displayName, favorite.businessId],
     companyFormLabel: favorite.companyForm,
     website: favorite.website,
     addresses: [],
@@ -41,23 +50,18 @@ function CompanyActions({
   languageOrder: ("1" | "2" | "3")[];
 }) {
   const primaryAddress = getPrimaryAddressText(company);
+  const mapLinks = buildMapSearchLinks(company.displayName, primaryAddress);
 
   return (
     <ActionPanel>
       <Action.Push
         title="View Details"
         target={
-          <CompanyDetail
-            businessId={company.businessId}
-            languageOrder={languageOrder}
-            initialCompany={company}
-            isFavorite={isFavorite}
-            onAddFavorite={onAddFavorite}
-            onRemoveFavorite={onRemoveFavorite}
-          />
+          <CompanyDetail businessId={company.businessId} languageOrder={languageOrder} initialCompany={company} />
         }
       />
       <Action.CopyToClipboard title="Copy Business Id" content={company.businessId} />
+      {company.euVatNumber ? <Action.CopyToClipboard title="Copy Eu Vat Number" content={company.euVatNumber} /> : null}
       {primaryAddress ? <Action.CopyToClipboard title="Copy Primary Address" content={primaryAddress} /> : null}
       {isFavorite ? (
         <Action
@@ -76,6 +80,8 @@ function CompanyActions({
           }}
         />
       )}
+      {mapLinks ? <Action.OpenInBrowser title="Open in Google Maps" url={mapLinks.googleMaps} icon={Icon.Map} /> : null}
+      {mapLinks ? <Action.OpenInBrowser title="Open in Apple Maps" url={mapLinks.appleMaps} icon={Icon.Map} /> : null}
       {company.website ? <Action.OpenInBrowser title="Open Website" url={company.website} /> : null}
       <Action.OpenInBrowser title="Open Ytj Search Page" url={YTJ_SEARCH_URL} />
       <Action.OpenInBrowser title="Open Raw Prh JSON" url={getRawCompanyApiUrl(company.businessId)} />
@@ -83,7 +89,11 @@ function CompanyActions({
   );
 }
 
-function getResultSectionTitle(isCachedResult: boolean, isRefreshing: boolean): string {
+function getResultSectionTitle(isCachedResult: boolean, isRefreshing: boolean, isLoadingMore: boolean): string {
+  if (isLoadingMore) {
+    return "Results (Loading More...)";
+  }
+
   if (isCachedResult && isRefreshing) {
     return "Results (Cached - Refreshing...)";
   }
@@ -107,9 +117,12 @@ export default function Command() {
     companies,
     isLoading,
     isRefreshing,
+    isLoadingMore,
     isCachedResult,
     totalResults,
     hasMoreResults,
+    page,
+    loadNextPage,
     languageOrder,
   } = usePrhSearch();
 
@@ -130,6 +143,7 @@ export default function Command() {
         <List.Section title="Favorites">
           {favorites.map((favorite) => {
             const favoriteCompany = toCompanyFromFavorite(favorite, languageOrder);
+            const favoriteMapLinks = buildMapSearchLinks(favorite.displayName, favorite.city);
             return (
               <List.Item
                 key={favorite.businessId}
@@ -149,13 +163,27 @@ export default function Command() {
                           businessId={favorite.businessId}
                           languageOrder={languageOrder}
                           initialCompany={favoriteCompany}
-                          isFavorite={true}
-                          onAddFavorite={addFavorite}
-                          onRemoveFavorite={removeFavorite}
                         />
                       }
                     />
                     <Action.CopyToClipboard title="Copy Business Id" content={favorite.businessId} />
+                    {favoriteCompany.euVatNumber ? (
+                      <Action.CopyToClipboard title="Copy Eu Vat Number" content={favoriteCompany.euVatNumber} />
+                    ) : null}
+                    {favoriteMapLinks ? (
+                      <Action.OpenInBrowser
+                        title="Open in Google Maps"
+                        url={favoriteMapLinks.googleMaps}
+                        icon={Icon.Map}
+                      />
+                    ) : null}
+                    {favoriteMapLinks ? (
+                      <Action.OpenInBrowser
+                        title="Open in Apple Maps"
+                        url={favoriteMapLinks.appleMaps}
+                        icon={Icon.Map}
+                      />
+                    ) : null}
                     <Action.OpenInBrowser title="Open Ytj Search Page" url={YTJ_SEARCH_URL} />
                     <Action.OpenInBrowser title="Open Raw Prh JSON" url={getRawCompanyApiUrl(favorite.businessId)} />
                     {favorite.website ? <Action.OpenInBrowser title="Open Website" url={favorite.website} /> : null}
@@ -197,7 +225,7 @@ export default function Command() {
       ) : null}
 
       {isSearchMode ? (
-        <List.Section title={getResultSectionTitle(isCachedResult, isRefreshing)}>
+        <List.Section title={getResultSectionTitle(isCachedResult, isRefreshing, isLoadingMore)}>
           {companies.map((company) => {
             const primaryCity = getPrimaryCity(company);
             const favorite = isFavorite(company.businessId);
@@ -209,12 +237,7 @@ export default function Command() {
                 title={company.displayName}
                 subtitle={company.businessId}
                 accessories={primaryCity ? [{ text: primaryCity }] : undefined}
-                detail={
-                  <List.Item.Detail
-                    markdown={buildSplitDetailMarkdown(company)}
-                    metadata={buildSplitDetailMetadata(company)}
-                  />
-                }
+                detail={<List.Item.Detail metadata={buildSplitDetailMetadata(company)} />}
                 actions={
                   <CompanyActions
                     company={company}
@@ -236,16 +259,36 @@ export default function Command() {
               accessories={[{ text: "Try another query" }]}
             />
           ) : null}
+
+          {hasMoreResults ? (
+            <List.Item
+              icon={isLoadingMore ? Icon.Clock : Icon.ChevronDown}
+              title={isLoadingMore ? "Loading More Results..." : "Load More Results"}
+              subtitle={`Loaded ${companies.length} of ${totalResults}`}
+              accessories={[{ text: `Page ${page}` }]}
+              actions={
+                <ActionPanel>
+                  <Action
+                    title="Load More Results"
+                    icon={Icon.ChevronDown}
+                    onAction={() => {
+                      loadNextPage();
+                    }}
+                  />
+                </ActionPanel>
+              }
+            />
+          ) : null}
         </List.Section>
       ) : null}
 
-      {isSearchMode && hasMoreResults ? (
-        <List.Section title="Notice">
+      {isSearchMode && companies.length > 0 ? (
+        <List.Section title="Result Summary">
           <List.Item
             icon={Icon.Info}
-            title={`Showing first page only (${companies.length} of ${totalResults})`}
-            subtitle="Pagination is not implemented in v1"
-            accessories={[{ text: "page=1" }]}
+            title={`Loaded ${companies.length} of ${totalResults}`}
+            subtitle={hasMoreResults ? "More pages available" : "All available results loaded"}
+            accessories={[{ text: `Page ${page}` }]}
           />
         </List.Section>
       ) : null}

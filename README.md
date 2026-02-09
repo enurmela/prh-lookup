@@ -7,6 +7,9 @@ Search Finnish companies in Raycast using PRH YTJ open data.
 - Search by company name or Business ID
 - Business ID normalization (`01120389` -> `0112038-9`)
 - Safe query guards to avoid accidental full-dataset fetches
+- Pagination support with `Load More Results`
+- Request deduplication for identical in-flight API calls
+- Persistent local search cache for faster repeated lookups
 - Company details view with identity, status, classification, addresses, and active registers
 - Local favorites stored on device (`prh-favorites-v1`)
 - Quick actions: copy ID/address, open YTJ search, open raw PRH JSON, open company website
@@ -70,7 +73,7 @@ bun run build
 ## Data Source
 
 - PRH YTJ Open Data API v3
-- Endpoint used in MVP: `GET /companies`
+- Endpoint used: `GET /companies`
 - Base URL: `https://avoindata.prh.fi/opendata-ytj-api/v3`
 
 References:
@@ -79,7 +82,6 @@ References:
 
 ## Limitations (MVP)
 
-- Uses only page 1 of `/companies` results
 - No map/financial tabs
 - No stable YTJ deep-link per business ID assumed; uses YTJ search page + raw PRH JSON link
 - No phone/email fields in PRH YTJ v3 `/companies`

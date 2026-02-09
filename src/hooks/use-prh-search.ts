@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { showFailureToast } from "@raycast/utils";
+import { showFailureToast, useLocalStorage } from "@raycast/utils";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   DIGITS_ONLY_REGEX,
   EIGHT_DIGIT_BUSINESS_ID_REGEX,
@@ -14,7 +14,9 @@ import type { QueryClassification, UiCompany } from "../types/ui";
 const NUMERIC_HINT = "Enter 8 digits or full 7+1 format";
 const TEXT_HINT = "Enter at least 2 characters";
 
+const SEARCH_CACHE_STORAGE_KEY = "prh-search-cache-v1";
 const SEARCH_CACHE_TTL_MS = 120_000;
+const SEARCH_CACHE_RETENTION_MS = 86_400_000;
 const SEARCH_CACHE_MAX_ENTRIES = 100;
 const NAME_QUERY_DEBOUNCE_MS = 180;
 
@@ -24,13 +26,15 @@ interface SearchCacheEntry {
   totalResults: number;
 }
 
+type PersistedSearchCache = Record<string, SearchCacheEntry>;
+
 const searchCache = new Map<string, SearchCacheEntry>();
 
 function normalizeBusinessId(raw: string): string {
   return `${raw.slice(0, 7)}-${raw.slice(7)}`;
 }
 
-function getCacheKey(classification: QueryClassification): string | undefined {
+function getCacheBaseKey(classification: QueryClassification): string | undefined {
   if (classification.kind === "businessId" && classification.normalizedBusinessId) {
     return `b:${classification.normalizedBusinessId}`;
   }
@@ -42,29 +46,73 @@ function getCacheKey(classification: QueryClassification): string | undefined {
   return undefined;
 }
 
-function setCacheEntry(key: string, companies: UiCompany[], totalResults: number): void {
-  searchCache.set(key, {
-    timestampMs: Date.now(),
-    companies,
-    totalResults,
-  });
+function getPageCacheKey(baseKey: string, page: number): string {
+  return `${baseKey}:p:${page}`;
+}
 
-  if (searchCache.size <= SEARCH_CACHE_MAX_ENTRIES) {
-    return;
+function isValidCacheEntry(entry: unknown): entry is SearchCacheEntry {
+  if (!entry || typeof entry !== "object") {
+    return false;
   }
 
-  let oldestKey: string | undefined;
-  let oldestTimestamp = Number.POSITIVE_INFINITY;
+  const maybe = entry as SearchCacheEntry;
 
-  for (const [entryKey, entry] of searchCache.entries()) {
-    if (entry.timestampMs < oldestTimestamp) {
-      oldestTimestamp = entry.timestampMs;
-      oldestKey = entryKey;
+  return (
+    typeof maybe.timestampMs === "number" &&
+    Number.isFinite(maybe.timestampMs) &&
+    Array.isArray(maybe.companies) &&
+    typeof maybe.totalResults === "number"
+  );
+}
+
+function pruneCacheEntries(entries: [string, SearchCacheEntry][]): [string, SearchCacheEntry][] {
+  const nowMs = Date.now();
+
+  const retained = entries
+    .filter(([, entry]) => nowMs - entry.timestampMs <= SEARCH_CACHE_RETENTION_MS)
+    .sort((left, right) => right[1].timestampMs - left[1].timestampMs)
+    .slice(0, SEARCH_CACHE_MAX_ENTRIES);
+
+  return retained;
+}
+
+function mergeCompanies(existing: UiCompany[], incoming: UiCompany[]): UiCompany[] {
+  if (!existing.length) {
+    return incoming;
+  }
+
+  if (!incoming.length) {
+    return existing;
+  }
+
+  const seen = new Set(existing.map((company) => company.businessId));
+  const merged = [...existing];
+
+  for (const company of incoming) {
+    if (seen.has(company.businessId)) {
+      continue;
     }
+
+    seen.add(company.businessId);
+    merged.push(company);
   }
 
-  if (oldestKey) {
-    searchCache.delete(oldestKey);
+  return merged;
+}
+
+function hydrateSearchCache(persistedCache: PersistedSearchCache): void {
+  for (const [key, entry] of Object.entries(persistedCache)) {
+    if (!isValidCacheEntry(entry)) {
+      continue;
+    }
+
+    searchCache.set(key, entry);
+  }
+
+  const pruned = pruneCacheEntries([...searchCache.entries()]);
+  searchCache.clear();
+  for (const [key, entry] of pruned) {
+    searchCache.set(key, entry);
   }
 }
 
@@ -121,20 +169,32 @@ interface UsePrhSearchResult {
   companies: UiCompany[];
   isLoading: boolean;
   isRefreshing: boolean;
+  isLoadingMore: boolean;
   isCachedResult: boolean;
   totalResults: number;
   hasMoreResults: boolean;
+  page: number;
+  loadNextPage: () => void;
   languageOrder: ("1" | "2" | "3")[];
 }
 
 export function usePrhSearch(): UsePrhSearchResult {
   const [searchText, setSearchText] = useState("");
   const [companies, setCompanies] = useState<UiCompany[]>([]);
+  const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [isCachedResult, setIsCachedResult] = useState(false);
   const [totalResults, setTotalResults] = useState(0);
   const requestTokenRef = useRef(0);
+  const hasHydratedCacheRef = useRef(false);
+
+  const {
+    value: persistedCacheValue,
+    setValue: setPersistedCacheValue,
+    isLoading: isLoadingPersistedCache,
+  } = useLocalStorage<PersistedSearchCache>(SEARCH_CACHE_STORAGE_KEY, {});
 
   const classification = useMemo(() => classifyQuery(searchText), [searchText]);
 
@@ -143,48 +203,112 @@ export function usePrhSearch(): UsePrhSearchResult {
     return getLanguageFallbackOrder(preferred);
   }, []);
 
+  const cacheBaseKey = useMemo(() => getCacheBaseKey(classification), [classification]);
+
+  useEffect(() => {
+    if (hasHydratedCacheRef.current || isLoadingPersistedCache) {
+      return;
+    }
+
+    hydrateSearchCache(persistedCacheValue ?? {});
+    hasHydratedCacheRef.current = true;
+  }, [isLoadingPersistedCache, persistedCacheValue]);
+
+  const persistSearchCache = useCallback(() => {
+    const pruned = pruneCacheEntries([...searchCache.entries()]);
+
+    searchCache.clear();
+    const nextPersisted: PersistedSearchCache = {};
+
+    for (const [key, entry] of pruned) {
+      searchCache.set(key, entry);
+      nextPersisted[key] = entry;
+    }
+
+    void setPersistedCacheValue(nextPersisted);
+  }, [setPersistedCacheValue]);
+
+  const setCacheEntry = useCallback(
+    (key: string, nextCompanies: UiCompany[], nextTotalResults: number) => {
+      searchCache.set(key, {
+        timestampMs: Date.now(),
+        companies: nextCompanies,
+        totalResults: nextTotalResults,
+      });
+
+      persistSearchCache();
+    },
+    [persistSearchCache],
+  );
+
+  useEffect(() => {
+    requestTokenRef.current += 1;
+    setPage(1);
+    setCompanies([]);
+    setTotalResults(0);
+    setIsLoading(false);
+    setIsRefreshing(false);
+    setIsLoadingMore(false);
+    setIsCachedResult(false);
+  }, [cacheBaseKey]);
+
   useEffect(() => {
     const controller = new AbortController();
     let timer: ReturnType<typeof setTimeout> | undefined;
 
-    const cacheKey = getCacheKey(classification);
-
-    if (!cacheKey) {
-      setCompanies([]);
-      setTotalResults(0);
-      setIsLoading(false);
-      setIsRefreshing(false);
-      setIsCachedResult(false);
+    if (!cacheBaseKey) {
       return () => {
         controller.abort();
         if (timer) clearTimeout(timer);
       };
     }
 
+    if (!hasHydratedCacheRef.current && isLoadingPersistedCache) {
+      return () => {
+        controller.abort();
+        if (timer) clearTimeout(timer);
+      };
+    }
+
+    const pageCacheKey = getPageCacheKey(cacheBaseKey, page);
     const nowMs = Date.now();
-    const cached = searchCache.get(cacheKey);
+    const cached = searchCache.get(pageCacheKey);
     const cacheAgeMs = cached ? nowMs - cached.timestampMs : Number.POSITIVE_INFINITY;
     const hasFreshCache = Boolean(cached && cacheAgeMs <= SEARCH_CACHE_TTL_MS);
 
     if (cached) {
-      setCompanies(cached.companies);
       setTotalResults(cached.totalResults);
-      setIsCachedResult(true);
-      setIsLoading(false);
+
+      if (page === 1) {
+        setCompanies(cached.companies);
+        setIsCachedResult(true);
+        setIsLoading(false);
+      } else {
+        setCompanies((previous) => mergeCompanies(previous, cached.companies));
+      }
     }
 
     if (hasFreshCache) {
-      setIsRefreshing(false);
+      if (page === 1) {
+        setIsRefreshing(false);
+      } else {
+        setIsLoadingMore(false);
+      }
+
       return () => {
         controller.abort();
         if (timer) clearTimeout(timer);
       };
     }
 
-    if (!cached) {
-      setIsLoading(true);
+    if (page === 1) {
+      if (!cached) {
+        setIsLoading(true);
+      } else {
+        setIsRefreshing(true);
+      }
     } else {
-      setIsRefreshing(true);
+      setIsLoadingMore(true);
     }
 
     const requestToken = ++requestTokenRef.current;
@@ -195,7 +319,7 @@ export function usePrhSearch(): UsePrhSearchResult {
           {
             businessId: classification.kind === "businessId" ? classification.normalizedBusinessId : undefined,
             name: classification.kind === "name" ? classification.value : undefined,
-            page: 1,
+            page,
           },
           controller.signal,
         );
@@ -205,30 +329,45 @@ export function usePrhSearch(): UsePrhSearchResult {
         }
 
         const mappedCompanies = response.companies.map((company) => toUiCompany(company, languageOrder));
-        setCompanies(mappedCompanies);
+
+        if (page === 1) {
+          setCompanies(mappedCompanies);
+          setIsCachedResult(false);
+        } else {
+          setCompanies((previous) => mergeCompanies(previous, mappedCompanies));
+        }
+
         setTotalResults(response.totalResults);
-        setIsCachedResult(false);
-        setCacheEntry(cacheKey, mappedCompanies, response.totalResults);
+        setCacheEntry(pageCacheKey, mappedCompanies, response.totalResults);
       } catch (error) {
         if ((error as { name?: string }).name === "AbortError") {
           return;
         }
 
-        if (!cached) {
+        if (!cached && page === 1) {
           setCompanies([]);
           setTotalResults(0);
           setIsCachedResult(false);
-          await showFailureToast(error, { title: "Failed to fetch companies from PRH" });
         }
+
+        if (!cached && page > 1) {
+          setPage((current) => (current === page ? page - 1 : current));
+        }
+
+        await showFailureToast(error, { title: "Failed to fetch companies from PRH" });
       } finally {
         if (!controller.signal.aborted && requestTokenRef.current === requestToken) {
-          setIsLoading(false);
-          setIsRefreshing(false);
+          if (page === 1) {
+            setIsLoading(false);
+            setIsRefreshing(false);
+          } else {
+            setIsLoadingMore(false);
+          }
         }
       }
     };
 
-    if (classification.kind === "name") {
+    if (classification.kind === "name" && page === 1) {
       timer = setTimeout(() => {
         void load();
       }, NAME_QUERY_DEBOUNCE_MS);
@@ -242,7 +381,17 @@ export function usePrhSearch(): UsePrhSearchResult {
         clearTimeout(timer);
       }
     };
-  }, [classification, languageOrder]);
+  }, [cacheBaseKey, classification, isLoadingPersistedCache, languageOrder, page, setCacheEntry]);
+
+  const hasMoreResults = totalResults > companies.length;
+
+  const loadNextPage = useCallback(() => {
+    if (!cacheBaseKey || isLoading || isRefreshing || isLoadingMore || !hasMoreResults) {
+      return;
+    }
+
+    setPage((current) => current + 1);
+  }, [cacheBaseKey, hasMoreResults, isLoading, isLoadingMore, isRefreshing]);
 
   return {
     searchText,
@@ -251,9 +400,12 @@ export function usePrhSearch(): UsePrhSearchResult {
     companies,
     isLoading,
     isRefreshing,
+    isLoadingMore,
     isCachedResult,
     totalResults,
-    hasMoreResults: totalResults > companies.length,
+    hasMoreResults,
+    page,
+    loadNextPage,
     languageOrder,
   };
 }

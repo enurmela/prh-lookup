@@ -1,4 +1,5 @@
 import type { PrhAddress, PrhLanguageCode, PrhPostOffice } from "../types/prh";
+import { EIGHT_DIGIT_BUSINESS_ID_REGEX, FULL_BUSINESS_ID_REGEX } from "../constants";
 
 export function formatDate(value?: string | null): string | undefined {
   if (!value) {
@@ -28,6 +29,27 @@ export function normalizeWebsiteUrl(url?: string): string | undefined {
   }
 
   return `https://${trimmed}`;
+}
+
+export function toEuVatNumber(businessId?: string): string | undefined {
+  if (!businessId) {
+    return undefined;
+  }
+
+  const normalized = businessId.trim();
+  if (!normalized) {
+    return undefined;
+  }
+
+  if (FULL_BUSINESS_ID_REGEX.test(normalized)) {
+    return `FI${normalized.replace("-", "")}`;
+  }
+
+  if (EIGHT_DIGIT_BUSINESS_ID_REGEX.test(normalized)) {
+    return `FI${normalized}`;
+  }
+
+  return undefined;
 }
 
 export function selectCity(

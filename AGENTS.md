@@ -1,10 +1,11 @@
 # AGENTS.md
 
-Minimal rules for contributors and coding agents in this repo.
+Contributor and coding-agent rules for this repo.
 
 ## Scope
 
-- Keep this extension focused on PRH company lookup MVP unless explicitly asked to expand scope.
+- Keep this extension focused on PRH company lookup.
+- Work is allowed when it directly improves lookup quality/UX and stays inside PRH/YTJ data unless explicitly approved otherwise.
 
 ## Hard Requirements
 
@@ -14,8 +15,21 @@ Minimal rules for contributors and coding agents in this repo.
 - Preserve query-safety behavior in `src/hooks/use-prh-search.ts`:
   - no empty `/companies` query
   - support only Business ID and name modes
-  - keep `page=1` for MVP
 - Favorites storage key must remain `prh-favorites-v1` unless a migration is implemented.
+
+## Guardrails
+
+- Favor high-signal list rows and hierarchical detail views (summary first, deep data below).
+- Treat company name history as first-class data:
+  - current legal name
+  - previous legal names (when available)
+  - alternate/trade names (when available)
+- Keep data provenance clear: PRH fields first, inferred/computed values clearly labeled.
+- Do not add third-party enrichment sources (financial/contact/map providers) without explicit approval.
+- Keep behavior predictable in Raycast:
+  - list remains fast and scannable
+  - full detail stays available via `View Details`
+  - actions stay practical (copy IDs/addresses, open source pages)
 
 ## Validation Before Finish
 

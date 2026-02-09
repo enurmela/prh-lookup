@@ -3,7 +3,14 @@ import type { PrhAddress, PrhCompany, PrhLanguageCode, PrhRegisteredEntry } from
 export interface UiCompany {
   businessId: string;
   euId?: string;
+  euVatNumber?: string;
   displayName: string;
+  currentLegalName?: string;
+  previousLegalNames: string[];
+  alternateNames: string[];
+  previousLegalNameCount: number;
+  alternateNameCount: number;
+  searchKeywords: string[];
   primaryNameType?: string;
   companyFormCode?: string;
   companyFormLabel?: string;

@@ -30,6 +30,8 @@ bun run dev
 - Search uses a short cache for speed:
   - repeated queries within ~120 seconds return instantly from cache
   - stale cached results can appear first, then refresh in background
+- Cache is also persisted locally so repeated queries remain fast across command reopen.
+- If more results exist, use `Load More Results` to fetch the next page.
 
 ## Split View UX
 
@@ -53,9 +55,8 @@ bun run dev
 - Open YTJ search page
 - Open raw PRH JSON for the selected Business ID
 
-## Current MVP Limits
+## Current Limits
 
-- First page of results only (`page=1`)
 - No financial/map tabs
 - No guaranteed direct per-company YTJ deep-link
 - No phone/email fields in PRH YTJ v3 `/companies`
