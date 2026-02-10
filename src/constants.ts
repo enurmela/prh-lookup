@@ -8,6 +8,7 @@ export const FULL_BUSINESS_ID_REGEX = /^\d{7}-\d$/;
 export const EIGHT_DIGIT_BUSINESS_ID_REGEX = /^\d{8}$/;
 export const DIGITS_ONLY_REGEX = /^\d+$/;
 
+// Reserved for backward compatibility with older local data.
 export const FAVORITES_STORAGE_KEY = "prh-favorites-v1";
 
 export const BUSINESS_ID_STATUS_LABELS: Record<string, string> = {
@@ -46,3 +47,23 @@ export const APP_LINKS = {
   prhSchema: "https://avoindata.prh.fi/opendata-ytj-api/v3/schema?lang=en",
   ytjSearch: YTJ_SEARCH_URL,
 };
+
+export interface WhatsNewEntry {
+  version: string;
+  title: string;
+  date: string;
+  changes: string[];
+}
+
+export const WHATS_NEW_ENTRIES: WhatsNewEntry[] = [
+  {
+    version: "0.1.0",
+    title: "Beta Launch",
+    date: "2026-02-10",
+    changes: [
+      "Search Finnish companies by company name and Business ID (PRH YTJ).",
+      "View company details with practical actions for copying and source links.",
+      "Read release notes in-app from the What's New section.",
+    ],
+  },
+];

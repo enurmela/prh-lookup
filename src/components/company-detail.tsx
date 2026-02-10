@@ -322,14 +322,14 @@ export default function CompanyDetail({ businessId, languageOrder, initialCompan
         <ActionPanel>
           {displayedCompany ? (
             <Action.CopyToClipboard
-              title="Copy Business Id"
+              title="Copy Business ID"
               content={displayedCompany.businessId}
               icon={Icon.Clipboard}
             />
           ) : null}
           {displayedCompany?.euVatNumber ? (
             <Action.CopyToClipboard
-              title="Copy Eu Vat Number"
+              title="Copy EU VAT Number"
               content={displayedCompany.euVatNumber}
               icon={Icon.CopyClipboard}
             />
@@ -346,8 +346,8 @@ export default function CompanyDetail({ businessId, languageOrder, initialCompan
           {mapLinks ? (
             <Action.OpenInBrowser title="Open in Apple Maps" url={mapLinks.appleMaps} icon={Icon.Map} />
           ) : null}
-          <Action.OpenInBrowser title="Open Ytj Search Page" url={YTJ_SEARCH_URL} icon={Icon.Globe} />
-          <Action.OpenInBrowser title="Open Raw Prh JSON" url={rawCompanyUrl} icon={Icon.Terminal} />
+          <Action.OpenInBrowser title="Open YTJ Search Page" url={YTJ_SEARCH_URL} icon={Icon.Globe} />
+          <Action.OpenInBrowser title="Open Raw PRH JSON" url={rawCompanyUrl} icon={Icon.Terminal} />
         </ActionPanel>
       }
     />

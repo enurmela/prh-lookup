@@ -32,15 +32,6 @@ export interface UiCompany {
   raw: PrhCompany;
 }
 
-export interface FavoriteCompany {
-  businessId: string;
-  displayName: string;
-  companyForm?: string;
-  city?: string;
-  website?: string;
-  updatedAt: string;
-}
-
 export type QueryClassificationKind = "empty" | "businessId" | "name" | "invalid-numeric" | "too-short-text";
 
 export interface QueryClassification {

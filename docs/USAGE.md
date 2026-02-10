@@ -2,7 +2,7 @@
 
 ## What This Extension Does
 
-PRH Lookup lets you search Finnish companies in Raycast using PRH YTJ open data.
+Finnish Company Search lets you search Finnish companies in Raycast using PRH YTJ open data.
 
 ## Start
 
@@ -18,7 +18,7 @@ bun install
 bun run dev
 ```
 
-3. Open Raycast and run `PRH Search`.
+3. Open Raycast and run `Finnish Company Search`.
 
 ## Search Behavior
 
@@ -40,11 +40,10 @@ bun run dev
   - right: minimal quick summary with dates first (last modified, registration/end date, status, essentials)
 - Full details are still available via `View Details`.
 
-## Favorites
+## What's New (In App)
 
-- Add/remove companies from favorites directly from list and detail actions.
-- Favorites appear when search input is empty.
-- Favorites are stored locally on your machine.
+- When the command opens with no active query, a `What's New` section appears under `Get Started`.
+- Select `Version History` and run `View What's New` to open recent release notes inside Raycast.
 
 ## Available Actions
 

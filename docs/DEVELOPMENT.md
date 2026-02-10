@@ -15,7 +15,6 @@ This guide covers how to develop and maintain this Raycast extension.
 - `src/components/company-detail.tsx`: detail screen
 - `src/api/prh.ts`: API client (`GET /companies`)
 - `src/hooks/use-prh-search.ts`: input classification + search orchestration
-- `src/hooks/use-favorites.ts`: local favorites persistence
 - `src/lib/language.ts`: language preference + fallback order
 - `src/lib/detail-view.tsx`: split-view right-panel render helpers
 - `src/lib/selectors.ts`: PRH -> UI selection logic
@@ -105,7 +104,6 @@ Current enforced behavior:
 - Right pane stays minimal and prioritizes dates (last modified, registration, end date), then key status fields.
 - `CompanyDetail` conditional refetch:
   - skip refetch when `initialCompany` already has critical data
-  - refetch when opened from sparse snapshots (e.g. favorites)
   - preserve fallback UI and toast behavior on errors
 
 ## Data and Security Notes
@@ -113,7 +111,7 @@ Current enforced behavior:
 - No external analytics.
 - No opaque binary dependencies.
 - Keep stored local data minimal.
-- Favorites are local only and keyed by `prh-favorites-v1`.
+- Search cache is stored locally for query performance.
 
 ## Store Publishing (Later)
 
@@ -128,7 +126,6 @@ Note: Raycast docs often assume npm lockfiles for Store CI. If needed for submis
 
 ## Suggested Improvements
 
-- Add `CHANGELOG.md`
 - Add `bun run check` script (`lint && build`)
 - Add optional language override preference
 - Add phone/email only if PRH (or another explicitly approved source) provides reliable contact fields

@@ -1,4 +1,4 @@
-# PRH Lookup (Raycast Extension)
+# Finnish Company Search (Raycast Extension)
 
 Search Finnish companies in Raycast using PRH YTJ open data.
 
@@ -11,7 +11,7 @@ Search Finnish companies in Raycast using PRH YTJ open data.
 - Request deduplication for identical in-flight API calls
 - Persistent local search cache for faster repeated lookups
 - Company details view with identity, status, classification, addresses, and active registers
-- Local favorites stored on device (`prh-favorites-v1`)
+- In-app `What's New` panel for quick release notes
 - Quick actions: copy ID/address, open YTJ search, open raw PRH JSON, open company website
 
 ## Stack
@@ -94,7 +94,7 @@ References:
 
 - No credentials are required
 - Queries are sent to PRH public API to retrieve company records
-- Favorites are stored locally in Raycast local storage on your machine
+- A short-lived search cache is stored locally to improve repeated query speed
 
 ## License / Attribution
 
