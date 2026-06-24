@@ -4,7 +4,7 @@
   "title": "FBL - Finnish Business Lookup",
   "description": "Look up Finnish businesses by name or Business ID using PRH YTJ open data",
   "icon": "icon.png",
-  "author": "elias",
+  "author": "eljn",
   "access": "public",
   "categories": [
     "Productivity",
