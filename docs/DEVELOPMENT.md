@@ -17,6 +17,8 @@ This guide covers how to develop and maintain this Raycast extension.
 - `src/hooks/use-prh-search.ts`: input classification + search orchestration
 - `src/lib/language.ts`: language preference + fallback order
 - `src/lib/detail-view.tsx`: split-view right-panel render helpers
+- `src/lib/maps.ts`: map search-link construction from PRH address fields
+- `src/lib/search-ranking.ts`: name-query relevance ranking
 - `src/lib/selectors.ts`: PRH -> UI selection logic
 - `src/lib/format.ts`: formatting helpers
 - `src/types/prh.ts`: raw API types
@@ -85,7 +87,7 @@ Current enforced behavior:
   - stale cache => immediate render + background refresh
   - no cache => normal network fetch
 - Cache persistence:
-  - cache is mirrored to local storage key `prh-search-cache-v1`
+  - cache is mirrored to local storage key `prh-search-cache-v2`
 - Name queries are debounced (`180ms`)
 - Business ID queries remain immediate
 - Pagination:
@@ -113,16 +115,14 @@ Current enforced behavior:
 - Keep stored local data minimal.
 - Search cache is stored locally for query performance.
 
-## Store Publishing (Later)
+## Store Publishing
 
-This repo is currently local/private-first. For a future Store pass:
+Before opening the Raycast Store publish PR:
 
-1. finalize metadata (author/license/categories/description)
-2. ensure icon/screenshot/changelog readiness
-3. run distribution validation (`ray build`)
-4. follow Raycast publish workflow
-
-Note: Raycast docs often assume npm lockfiles for Store CI. If needed for submission, generate the required npm lock artifacts in a dedicated publishing branch.
+1. Confirm package metadata, icon, screenshots, changelog, README, and attribution are current.
+2. Run Bun validation (`bun install --frozen-lockfile`, `bun run lint`, `bun run build`).
+3. Run npm validation (`npm ci`, `npm run lint`, `npm run build`) because Store review uses the npm lockfile path.
+4. Follow the publish checklist in `docs/STORE_SUBMISSION.md`.
 
 ## Suggested Improvements
 

@@ -51,12 +51,13 @@ bun run dev
 - Copy Business ID
 - Copy Primary Address (if available)
 - Open company website (if available)
+- Open primary address in Google Maps or Apple Maps (if available)
 - Open YTJ search page
 - Open raw PRH JSON for the selected Business ID
 
 ## Current Limits
 
-- No financial/map tabs
+- No financial tabs
 - No guaranteed direct per-company YTJ deep-link
 - No phone/email fields in PRH YTJ v3 `/companies`
 

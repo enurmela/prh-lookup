@@ -12,7 +12,7 @@ FBL helps you look up Finnish businesses in Raycast using PRH YTJ open data.
 - Persistent local search cache for faster repeated lookups
 - Company details view with identity, status, classification, addresses, and active registers
 - In-app `What's New` panel for quick release notes
-- Quick actions: copy ID/address, open YTJ search, open raw PRH JSON, open company website
+- Quick actions: copy ID/address, open YTJ search, open raw PRH JSON, open company website, and open address in maps
 
 ## Stack
 
@@ -83,7 +83,7 @@ References:
 
 ## Limitations (MVP)
 
-- No map/financial tabs
+- No financial tabs
 - No stable YTJ deep-link per business ID assumed; uses YTJ search page + raw PRH JSON link
 - No phone/email fields in PRH YTJ v3 `/companies`
 

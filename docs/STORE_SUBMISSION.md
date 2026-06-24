@@ -52,8 +52,9 @@ Use Raycast Window Capture so screenshots are saved into extension metadata.
 3. Capture these states with one consistent background:
    - Empty start view with `Get Started` and `What's New`.
    - Search results for `nokia` with split-view metadata visible.
+   - Actions menu for a selected company.
+   - Website action for a selected company.
    - Detail view for `0112038-9` / Nokia Oyj.
-   - Validation hint for invalid numeric input such as `123`.
 4. Check `metadata/` for the generated screenshots before publishing.
 
 Avoid sensitive data and keep the screenshots focused on Raycast only.
