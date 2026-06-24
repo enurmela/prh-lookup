@@ -1,6 +1,6 @@
-# Finnish Company Search (Raycast Extension)
+# FBL - Finnish Business Lookup (Raycast Extension)
 
-Search Finnish companies in Raycast using PRH YTJ open data.
+FBL helps you look up Finnish businesses in Raycast using PRH YTJ open data.
 
 ## Features
 
@@ -68,6 +68,7 @@ bun run build
 
 - Usage: `docs/USAGE.md`
 - Development: `docs/DEVELOPMENT.md`
+- Store submission: `docs/STORE_SUBMISSION.md`
 - Agent/contributor essentials: `AGENTS.md`
 
 ## Data Source
@@ -98,4 +99,7 @@ References:
 
 ## License / Attribution
 
-- Company data: PRH open data under CC BY 4.0
+- Company data source: PRH YTJ Open Data API v3
+- Company data license: Creative Commons Attribution 4.0 International (CC BY 4.0)
+- This extension is unofficial and is not affiliated with or endorsed by PRH, YTJ, the Finnish Patent and Registration Office, or the Finnish Business Information System.
+- The extension icon is an independent company-search mark and does not use PRH or YTJ logos.

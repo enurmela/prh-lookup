@@ -65,7 +65,7 @@ Current enforced behavior:
 - Input classification:
   - `^\d{7}-\d$` -> business ID
   - `^\d{8}$` -> normalize to `NNNNNNN-N`, then business ID
-  - text length >= 2 -> name search
+  - text length >= 3 -> name search
   - other numeric values -> show hint, skip API call
 - Pagination is supported via incremental page loading.
 

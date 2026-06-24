@@ -8,13 +8,14 @@ import {
 } from "../constants";
 import { searchCompanies } from "../api/prh";
 import { getLanguageFallbackOrder, getPreferredLanguageCode } from "../lib/language";
+import { rankCompaniesForNameQuery } from "../lib/search-ranking";
 import { toUiCompany } from "../lib/selectors";
 import type { QueryClassification, UiCompany } from "../types/ui";
 
 const NUMERIC_HINT = "Enter 8 digits or full 7+1 format";
-const TEXT_HINT = "Enter at least 2 characters";
+const TEXT_HINT = "Enter at least 3 characters";
 
-const SEARCH_CACHE_STORAGE_KEY = "prh-search-cache-v1";
+const SEARCH_CACHE_STORAGE_KEY = "prh-search-cache-v2";
 const SEARCH_CACHE_TTL_MS = 120_000;
 const SEARCH_CACHE_RETENTION_MS = 86_400_000;
 const SEARCH_CACHE_MAX_ENTRIES = 100;
@@ -98,6 +99,14 @@ function mergeCompanies(existing: UiCompany[], incoming: UiCompany[]): UiCompany
   }
 
   return merged;
+}
+
+function rankCompaniesForClassification(companies: UiCompany[], classification: QueryClassification): UiCompany[] {
+  if (classification.kind !== "name" || !classification.value) {
+    return companies;
+  }
+
+  return rankCompaniesForNameQuery(companies, classification.value);
 }
 
 function hydrateSearchCache(persistedCache: PersistedSearchCache): void {
@@ -277,14 +286,18 @@ export function usePrhSearch(): UsePrhSearchResult {
     const hasFreshCache = Boolean(cached && cacheAgeMs <= SEARCH_CACHE_TTL_MS);
 
     if (cached) {
+      const rankedCachedCompanies = rankCompaniesForClassification(cached.companies, classification);
+
       setTotalResults(cached.totalResults);
 
       if (page === 1) {
-        setCompanies(cached.companies);
+        setCompanies(rankedCachedCompanies);
         setIsCachedResult(true);
         setIsLoading(false);
       } else {
-        setCompanies((previous) => mergeCompanies(previous, cached.companies));
+        setCompanies((previous) =>
+          rankCompaniesForClassification(mergeCompanies(previous, rankedCachedCompanies), classification),
+        );
       }
     }
 
@@ -328,13 +341,18 @@ export function usePrhSearch(): UsePrhSearchResult {
           return;
         }
 
-        const mappedCompanies = response.companies.map((company) => toUiCompany(company, languageOrder));
+        const mappedCompanies = rankCompaniesForClassification(
+          response.companies.map((company) => toUiCompany(company, languageOrder)),
+          classification,
+        );
 
         if (page === 1) {
           setCompanies(mappedCompanies);
           setIsCachedResult(false);
         } else {
-          setCompanies((previous) => mergeCompanies(previous, mappedCompanies));
+          setCompanies((previous) =>
+            rankCompaniesForClassification(mergeCompanies(previous, mappedCompanies), classification),
+          );
         }
 
         setTotalResults(response.totalResults);

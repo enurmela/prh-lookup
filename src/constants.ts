@@ -2,7 +2,7 @@ export const PRH_API_BASE_URL = "https://avoindata.prh.fi/opendata-ytj-api/v3";
 
 export const YTJ_SEARCH_URL = "https://www.ytj.fi/en/index/company-search";
 
-export const MIN_TEXT_QUERY_LENGTH = 2;
+export const MIN_TEXT_QUERY_LENGTH = 3;
 
 export const FULL_BUSINESS_ID_REGEX = /^\d{7}-\d$/;
 export const EIGHT_DIGIT_BUSINESS_ID_REGEX = /^\d{8}$/;

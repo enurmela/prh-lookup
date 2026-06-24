@@ -2,7 +2,7 @@
 
 ## What This Extension Does
 
-Finnish Company Search lets you search Finnish companies in Raycast using PRH YTJ open data.
+FBL - Finnish Business Lookup lets you search Finnish businesses in Raycast using PRH YTJ open data.
 
 ## Start
 
@@ -18,11 +18,11 @@ bun install
 bun run dev
 ```
 
-3. Open Raycast and run `Finnish Company Search`.
+3. Open Raycast and run `Search Finnish Businesses`.
 
 ## Search Behavior
 
-- Name search: type at least 2 characters (example: `nokia`)
+- Name search: type at least 3 characters (example: `nokia`)
 - Business ID search:
   - full format: `0112038-9`
   - 8 digits: `01120389` (auto-normalized)

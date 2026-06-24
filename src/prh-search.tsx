@@ -71,7 +71,7 @@ export default function Command() {
         <List.Section title="Get Started">
           <List.Item
             icon={Icon.MagnifyingGlass}
-            title="Search Finnish Companies"
+            title="Search Finnish Businesses"
             subtitle="Type company name or Business ID to start"
             accessories={[{ text: "PRH YTJ" }]}
           />
