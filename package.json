@@ -1,11 +1,11 @@
 {
   "$schema": "https://www.raycast.com/schemas/extension.json",
-  "name": "prh-lookup",
-  "title": "PRH Lookup",
-  "description": "Search Finnish companies by name or Business ID (PRH YTJ)",
+  "name": "finnish-business-lookup",
+  "title": "FBL - Finnish Business Lookup",
+  "description": "Look up Finnish businesses by name or Business ID using PRH YTJ open data",
   "icon": "icon.png",
-  "author": "elias",
-  "access": "private",
+  "author": "eljn",
+  "access": "public",
   "categories": [
     "Productivity",
     "Web"
@@ -14,29 +14,35 @@
   "commands": [
     {
       "name": "prh-search",
-      "title": "PRH Search",
-      "description": "Search Finnish companies by name or Business ID (PRH YTJ)",
+      "title": "Search Finnish Businesses",
+      "description": "Look up Finnish businesses by name or Business ID using PRH YTJ open data",
       "mode": "view"
     }
   ],
   "dependencies": {
-    "@raycast/api": "^1.90.0",
-    "@raycast/utils": "^1.17.0"
+    "@raycast/api": "^1.104.23",
+    "@raycast/utils": "^2.2.7"
   },
   "devDependencies": {
-    "@raycast/eslint-config": "^1.0.11",
-    "@types/node": "20.8.10",
-    "@types/react": "18.3.3",
-    "eslint": "^8.57.0",
-    "prettier": "^3.3.3",
-    "typescript": "^5.4.5"
+    "@raycast/eslint-config": "^2.2.0",
+    "@types/node": "^26.1.1",
+    "@types/react": "^19.2.17",
+    "eslint": "^10.7.0",
+    "prettier": "^3.9.6",
+    "typescript": "^6.0.0"
   },
-  "packageManager": "bun@1.2.7",
+  "packageManager": "bun@1.3.14",
+  "overrides": {
+    "esbuild": "0.28.1"
+  },
   "scripts": {
     "build": "ray build",
     "dev": "ray develop",
     "lint": "ray lint",
     "fix-lint": "ray lint --fix",
-    "publish": "bunx @raycast/api@latest publish"
-  }
+    "publish": "npx @raycast/api@latest publish"
+  },
+  "platforms": [
+    "macOS"
+  ]
 }

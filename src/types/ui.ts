@@ -3,7 +3,14 @@ import type { PrhAddress, PrhCompany, PrhLanguageCode, PrhRegisteredEntry } from
 export interface UiCompany {
   businessId: string;
   euId?: string;
+  euVatNumber?: string;
   displayName: string;
+  currentLegalName?: string;
+  previousLegalNames: string[];
+  alternateNames: string[];
+  previousLegalNameCount: number;
+  alternateNameCount: number;
+  searchKeywords: string[];
   primaryNameType?: string;
   companyFormCode?: string;
   companyFormLabel?: string;
@@ -17,20 +24,12 @@ export interface UiCompany {
   primaryAddress?: PrhAddress;
   addresses: PrhAddress[];
   registeredEntries: PrhRegisteredEntry[];
+  activeRegisterCount?: number;
   registrationDate?: string;
   endDate?: string;
   lastModified?: string;
   languageOrder: PrhLanguageCode[];
   raw: PrhCompany;
-}
-
-export interface FavoriteCompany {
-  businessId: string;
-  displayName: string;
-  companyForm?: string;
-  city?: string;
-  website?: string;
-  updatedAt: string;
 }
 
 export type QueryClassificationKind = "empty" | "businessId" | "name" | "invalid-numeric" | "too-short-text";

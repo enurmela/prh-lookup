@@ -1,15 +1,18 @@
-# PRH Lookup (Raycast Extension)
+# FBL - Finnish Business Lookup (Raycast Extension)
 
-Search Finnish companies in Raycast using PRH YTJ open data.
+FBL helps you look up Finnish businesses in Raycast using PRH YTJ open data.
 
 ## Features
 
 - Search by company name or Business ID
 - Business ID normalization (`01120389` -> `0112038-9`)
 - Safe query guards to avoid accidental full-dataset fetches
+- Pagination support with `Load More Results`
+- Request deduplication for identical in-flight API calls
+- Persistent local search cache for faster repeated lookups
 - Company details view with identity, status, classification, addresses, and active registers
-- Local favorites stored on device (`prh-favorites-v1`)
-- Quick actions: copy ID/address, open YTJ search, open raw PRH JSON, open company website
+- In-app `What's New` panel for quick release notes
+- Quick actions: copy ID/address, open YTJ search, open raw PRH JSON, open company website, and open address in maps
 
 ## Stack
 
@@ -65,30 +68,39 @@ bun run build
 
 - Usage: `docs/USAGE.md`
 - Development: `docs/DEVELOPMENT.md`
+- Store submission: `docs/STORE_SUBMISSION.md`
 - Agent/contributor essentials: `AGENTS.md`
 
 ## Data Source
 
 - PRH YTJ Open Data API v3
-- Endpoint used in MVP: `GET /companies`
+- Endpoint used: `GET /companies`
 - Base URL: `https://avoindata.prh.fi/opendata-ytj-api/v3`
 
 References:
+
 - Swagger UI: <https://avoindata.prh.fi/fi/ytj/swagger-ui>
 - OpenAPI schema (EN): <https://avoindata.prh.fi/opendata-ytj-api/v3/schema?lang=en>
 
 ## Limitations (MVP)
 
-- Uses only page 1 of `/companies` results
-- No map/financial tabs
+- No financial tabs
 - No stable YTJ deep-link per business ID assumed; uses YTJ search page + raw PRH JSON link
+- No phone/email fields in PRH YTJ v3 `/companies`
+
+## Roadmap
+
+- Add phone/email only if PRH or another explicitly approved source provides reliable contact fields
 
 ## Privacy
 
 - No credentials are required
 - Queries are sent to PRH public API to retrieve company records
-- Favorites are stored locally in Raycast local storage on your machine
+- A short-lived search cache is stored locally to improve repeated query speed
 
 ## License / Attribution
 
-- Company data: PRH open data under CC BY 4.0
+- Company data source: PRH YTJ Open Data API v3
+- Company data license: Creative Commons Attribution 4.0 International (CC BY 4.0)
+- This extension is unofficial and is not affiliated with or endorsed by PRH, YTJ, the Finnish Patent and Registration Office, or the Finnish Business Information System.
+- The extension icon is an independent company-search mark and does not use PRH or YTJ logos.
