@@ -1,4 +1,4 @@
-import { Action, ActionPanel, Detail, Icon, List } from "@raycast/api";
+import { Action, ActionPanel, Detail, Icon, List, Keyboard } from "@raycast/api";
 import { getRawCompanyApiUrl } from "./api/prh";
 import CompanyDetail from "./components/company-detail";
 import { usePrhSearch } from "./hooks/use-prh-search";
@@ -21,12 +21,28 @@ function CompanyActions({ company, languageOrder }: { company: UiCompany; langua
           <CompanyDetail businessId={company.businessId} languageOrder={languageOrder} initialCompany={company} />
         }
       />
-      <Action.CopyToClipboard title="Copy Business ID" content={company.businessId} />
-      {company.euVatNumber ? <Action.CopyToClipboard title="Copy EU VAT Number" content={company.euVatNumber} /> : null}
-      {primaryAddress ? <Action.CopyToClipboard title="Copy Primary Address" content={primaryAddress} /> : null}
+      <Action.CopyToClipboard
+        title="Copy Y-Tunnus"
+        content={company.businessId}
+        icon={Icon.Clipboard}
+        shortcut={{ modifiers: ["cmd"], key: "c" }}
+      />
+      {company.euVatNumber ? (
+        <Action.CopyToClipboard title="Copy EU VAT Number" content={company.euVatNumber} icon={Icon.CopyClipboard} />
+      ) : null}
+      {primaryAddress ? (
+        <Action.CopyToClipboard title="Copy Primary Address" content={primaryAddress} icon={Icon.CopyClipboard} />
+      ) : null}
       {mapLinks ? <Action.OpenInBrowser title="Open in Google Maps" url={mapLinks.googleMaps} icon={Icon.Map} /> : null}
       {mapLinks ? <Action.OpenInBrowser title="Open in Apple Maps" url={mapLinks.appleMaps} icon={Icon.Map} /> : null}
-      {company.website ? <Action.OpenInBrowser title="Open Website" url={company.website} /> : null}
+      {company.website ? (
+        <Action.OpenInBrowser
+          title="Open Website"
+          url={company.website}
+          icon={Icon.Globe}
+          shortcut={Keyboard.Shortcut.Common.Open}
+        />
+      ) : null}
       <Action.OpenInBrowser title="Open YTJ Search Page" url={YTJ_SEARCH_URL} />
       <Action.OpenInBrowser title="Open Raw PRH JSON" url={getRawCompanyApiUrl(company.businessId)} />
     </ActionPanel>

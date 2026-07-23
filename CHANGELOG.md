@@ -4,7 +4,16 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
-## [0.1.0] - {PR_MERGE_DATE}
+### Added
+
+- Added preview shortcuts to copy a company's Y-tunnus with `Command-C` and open its website with `Command-O`.
+- Documented the feature-branch and Store-release workflow.
+
+### Fixed
+
+- Prevented persisted search-cache updates from retriggering the search effect in a render loop.
+
+## [0.1.0] - 2026-07-23
 
 ### Added
 
