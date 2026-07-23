@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 - Added preview shortcuts to copy a company's Y-tunnus with `Command-C` and open its website with `Command-O`.
+- Added `Command-E` to open the official e-invoice directory with the selected company's Y-tunnus.
 - Documented the feature-branch and Store-release workflow.
 
 ### Fixed

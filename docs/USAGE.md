@@ -41,6 +41,7 @@ bun run dev
 - Full details are still available via `View Details`.
 - Press `Command-C` to copy the selected company's Y-tunnus directly from the preview.
 - Press `Command-O` to open the selected company's website when one is available.
+- Press `Command-E` to search the official e-invoice directory using the selected company's Y-tunnus.
 
 ## What's New (In App)
 
@@ -53,6 +54,7 @@ bun run dev
 - Copy Y-tunnus
 - Copy Primary Address (if available)
 - Open company website (if available)
+- Open the official e-invoice directory with the selected Y-tunnus
 - Open primary address in Google Maps or Apple Maps (if available)
 - Open YTJ search page
 - Open raw PRH JSON for the selected Business ID

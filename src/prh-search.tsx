@@ -4,6 +4,7 @@ import CompanyDetail from "./components/company-detail";
 import { usePrhSearch } from "./hooks/use-prh-search";
 import { YTJ_SEARCH_URL } from "./constants";
 import { buildSplitDetailMetadata } from "./lib/detail-view";
+import { buildEInvoiceDirectoryUrl } from "./lib/e-invoice";
 import { buildMapSearchLinks } from "./lib/maps";
 import { getPrimaryAddressText, getPrimaryCity } from "./lib/selectors";
 import { buildWhatsNewMarkdown, getLatestWhatsNewLabel } from "./lib/whats-new";
@@ -43,6 +44,12 @@ function CompanyActions({ company, languageOrder }: { company: UiCompany; langua
           shortcut={Keyboard.Shortcut.Common.Open}
         />
       ) : null}
+      <Action.OpenInBrowser
+        title="Open E-Invoice Directory"
+        url={buildEInvoiceDirectoryUrl(company.businessId)}
+        icon={Icon.Receipt}
+        shortcut={Keyboard.Shortcut.Common.Edit}
+      />
       <Action.OpenInBrowser title="Open YTJ Search Page" url={YTJ_SEARCH_URL} />
       <Action.OpenInBrowser title="Open Raw PRH JSON" url={getRawCompanyApiUrl(company.businessId)} />
     </ActionPanel>
