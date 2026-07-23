@@ -2,6 +2,25 @@
 
 Use this checklist before opening the Raycast Store publish PR.
 
+## Updating a Published Extension
+
+1. Merge the completed feature branch into `main`.
+2. If Raycast reviewers or contributors changed the Store copy, sync those changes before publishing:
+
+   ```bash
+   npx @raycast/api@latest pull-contributions
+   ```
+
+3. Resolve and commit any sync changes.
+4. Add a user-facing `CHANGELOG.md` entry using this format:
+
+   ```markdown
+   ## [Descriptive Update Title] - {PR_MERGE_DATE}
+   ```
+
+5. Complete the validation and manual QA below.
+6. Run `npm run publish`. Run it again after further changes to update the open Raycast pull request.
+
 ## Validation
 
 Local development uses Bun:
@@ -40,6 +59,9 @@ Run the built extension in Raycast and verify the user-facing flows:
 - `Load More Results` fetches another page on broad searches.
 - `View Details` opens a nested detail view.
 - Copy actions copy Business ID, EU VAT number, and address when available.
+- `Command-C` copies the selected company's Y-tunnus from search results.
+- `Command-O` opens the selected company's website when available.
+- `Command-E` searches the official e-invoice directory using the selected company's Y-tunnus.
 - Source links open YTJ search and raw PRH JSON.
 - Website and map actions open only when the company has enough data.
 

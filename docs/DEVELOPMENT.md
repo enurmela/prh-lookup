@@ -43,6 +43,18 @@ bunx ray help
 bunx ray migrate
 ```
 
+## Branch and Release Workflow
+
+Keep `main` release-ready and use short-lived branches for each change:
+
+1. Update `main`, then create a focused branch such as `feature/faster-search`, `fix/result-ranking`, or `codex/preview-actions`.
+2. Develop and test locally without mixing unrelated changes.
+3. Run `bun run lint` and `bun run build`.
+4. Open a pull request into `main` and merge only after validation passes.
+5. Delete the feature branch after merging.
+6. Submit Store updates from the clean `main` branch. A merge into this repository does not update the Raycast Store until the corresponding PR is merged into `raycast/extensions`.
+7. If Raycast maintainers adjust files during Store review, sync those accepted changes back into this repository before starting the next feature.
+
 ## Coding Rules
 
 - Keep logic modular and testable.

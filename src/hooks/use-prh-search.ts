@@ -179,7 +179,6 @@ interface UsePrhSearchResult {
   isLoading: boolean;
   isRefreshing: boolean;
   isLoadingMore: boolean;
-  isCachedResult: boolean;
   totalResults: number;
   hasMoreResults: boolean;
   page: number;
@@ -194,7 +193,6 @@ export function usePrhSearch(): UsePrhSearchResult {
   const [isLoading, setIsLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [isCachedResult, setIsCachedResult] = useState(false);
   const [totalResults, setTotalResults] = useState(0);
   const requestTokenRef = useRef(0);
   const hasHydratedCacheRef = useRef(false);
@@ -205,6 +203,7 @@ export function usePrhSearch(): UsePrhSearchResult {
     setValue: setPersistedCacheValue,
     isLoading: isLoadingPersistedCache,
   } = useLocalStorage<PersistedSearchCache>(SEARCH_CACHE_STORAGE_KEY, {});
+  const setPersistedCacheValueRef = useRef(setPersistedCacheValue);
 
   const classification = useMemo(() => classifyQuery(searchText), [searchText]);
 
@@ -214,6 +213,10 @@ export function usePrhSearch(): UsePrhSearchResult {
   }, []);
 
   const cacheBaseKey = useMemo(() => getCacheBaseKey(classification), [classification]);
+
+  useEffect(() => {
+    setPersistedCacheValueRef.current = setPersistedCacheValue;
+  }, [setPersistedCacheValue]);
 
   useEffect(() => {
     if (hasHydratedCacheRef.current || isLoadingPersistedCache) {
@@ -235,8 +238,8 @@ export function usePrhSearch(): UsePrhSearchResult {
       nextPersisted[key] = entry;
     }
 
-    void setPersistedCacheValue(nextPersisted);
-  }, [setPersistedCacheValue]);
+    void setPersistedCacheValueRef.current(nextPersisted);
+  }, []);
 
   const setCacheEntry = useCallback(
     (key: string, nextCompanies: UiCompany[], nextTotalResults: number) => {
@@ -259,7 +262,6 @@ export function usePrhSearch(): UsePrhSearchResult {
     setIsLoading(false);
     setIsRefreshing(false);
     setIsLoadingMore(false);
-    setIsCachedResult(false);
     pendingLoadMoreRef.current = false;
   }, [cacheBaseKey]);
 
@@ -294,7 +296,6 @@ export function usePrhSearch(): UsePrhSearchResult {
 
       if (page === 1) {
         setCompanies(rankedCachedCompanies);
-        setIsCachedResult(true);
         setIsLoading(false);
       } else {
         setCompanies((previous) =>
@@ -351,7 +352,6 @@ export function usePrhSearch(): UsePrhSearchResult {
 
         if (page === 1) {
           setCompanies(mappedCompanies);
-          setIsCachedResult(false);
         } else {
           setCompanies((previous) =>
             rankCompaniesForClassification(mergeCompanies(previous, mappedCompanies), classification),
@@ -368,7 +368,6 @@ export function usePrhSearch(): UsePrhSearchResult {
         if (!cached && page === 1) {
           setCompanies([]);
           setTotalResults(0);
-          setIsCachedResult(false);
         }
 
         if (!cached && page > 1) {
@@ -424,7 +423,6 @@ export function usePrhSearch(): UsePrhSearchResult {
     isLoading,
     isRefreshing,
     isLoadingMore,
-    isCachedResult,
     totalResults,
     hasMoreResults,
     page,

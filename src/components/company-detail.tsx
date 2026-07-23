@@ -1,9 +1,10 @@
-import { Action, ActionPanel, Detail, Icon } from "@raycast/api";
+import { Action, ActionPanel, Detail, Icon, Keyboard } from "@raycast/api";
 import { showFailureToast } from "@raycast/utils";
 import { useEffect, useMemo, useState } from "react";
 import { getRawCompanyApiUrl, searchCompanies } from "../api/prh";
 import { AUTHORITY_LABELS, REGISTER_LABELS, YTJ_SEARCH_URL } from "../constants";
-import { formatAddress, formatDate } from "../lib/format";
+import { buildEInvoiceDirectoryUrl } from "../lib/e-invoice";
+import { formatAddress, formatDate, getStatusText } from "../lib/format";
 import { buildMapSearchLinks } from "../lib/maps";
 import { escapeMarkdownText, formatMarkdownLink } from "../lib/markdown";
 import {
@@ -21,22 +22,6 @@ interface CompanyDetailProps {
   businessId: string;
   languageOrder: PrhLanguageCode[];
   initialCompany?: UiCompany;
-}
-
-function getStatusText(label?: string, code?: string): string {
-  if (label && code) {
-    return `${label} (${code})`;
-  }
-
-  if (label) {
-    return label;
-  }
-
-  if (code) {
-    return `Code ${code}`;
-  }
-
-  return "Not available";
 }
 
 function buildAddressesMarkdown(company: UiCompany): string[] {
@@ -340,6 +325,14 @@ export default function CompanyDetail({ businessId, languageOrder, initialCompan
           ) : null}
           {displayedCompany?.website ? (
             <Action.OpenInBrowser title="Open Website" url={displayedCompany.website} />
+          ) : null}
+          {displayedCompany ? (
+            <Action.OpenInBrowser
+              title="Open E-Invoice Directory"
+              url={buildEInvoiceDirectoryUrl(displayedCompany.businessId)}
+              icon={Icon.Receipt}
+              shortcut={Keyboard.Shortcut.Common.Edit}
+            />
           ) : null}
           {mapLinks ? (
             <Action.OpenInBrowser title="Open in Google Maps" url={mapLinks.googleMaps} icon={Icon.Map} />
